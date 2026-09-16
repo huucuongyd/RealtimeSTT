@@ -1,0 +1,3 @@
+window.RTSTT_CONFIG = {
+  wsUrl: "${BACKEND_WS_URL}"
+};

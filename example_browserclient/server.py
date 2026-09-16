@@ -8,6 +8,7 @@ if __name__ == '__main__':
     from scipy.signal import resample
     import json
     import logging
+    import os
     import sys
 
     logging.basicConfig(
@@ -134,8 +135,10 @@ if __name__ == '__main__':
         recorder_thread.start()
         recorder_ready.wait()
 
-        print("Server started. Press Ctrl+C to stop the server.")
-        async with websockets.serve(echo, "localhost", 9001):
+        host = os.environ.get("BACKEND_HOST", "0.0.0.0")
+        port = int(os.environ.get("BACKEND_PORT", "9001"))
+        print(f"Server started on ws://{host}:{port}. Press Ctrl+C to stop the server.")
+        async with websockets.serve(echo, host, port):
             try:
                 await asyncio.Future()  # run forever
             except asyncio.CancelledError:

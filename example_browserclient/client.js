@@ -1,4 +1,7 @@
-let socket = new WebSocket("ws://localhost:9001");
+const DEFAULT_WS_URL = "ws://localhost:9001";
+const WS_URL = (window.RTSTT_CONFIG && window.RTSTT_CONFIG.wsUrl) || DEFAULT_WS_URL;
+
+let socket = new WebSocket(WS_URL);
 let displayDiv = document.getElementById('textDisplay');
 let server_available = false;
 let mic_available = false;
@@ -7,7 +10,7 @@ let fullSentences = [];
 const serverCheckInterval = 5000; // Check every 5 seconds
 
 function connectToServer() {
-    socket = new WebSocket("ws://localhost:9001");
+    socket = new WebSocket(WS_URL);
 
     socket.onopen = function(event) {
         server_available = true;

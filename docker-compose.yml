@@ -5,27 +5,44 @@ services:
       target: gpu # or cpu
     image: rtstt
     container_name: rtstt
+    environment:
+      BACKEND_HOST: ${BACKEND_HOST:-0.0.0.0}
+      BACKEND_PORT: ${BACKEND_PORT:-9001}
     volumes:
       # - ./RealtimeSTT:/app/RealtimeSTT
       # - ./example_browserclient:/app/example_browserclient
       - cache:/root/.cache
     ports:
-      - "9001:9001"
+      - "${BACKEND_PUBLISH_PORT:-9001}:9001"
 
     # if 'gpu' target
     deploy:
       resources:
         reservations:
           devices:
-          - capabilities: ["gpu"]
+            - capabilities: ["gpu"]
+
   nginx:
     image: nginx:latest
     container_name: nginx_web
+    environment:
+      # Browser connects to this WebSocket URL (host machine perspective)
+      BACKEND_WS_URL: ${BACKEND_WS_URL:-ws://localhost:9001}
+      # Optional: public URL where the UI is served
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8081}
     ports:
-      - "8081:80"
+      - "${FRONTEND_PUBLISH_PORT:-8081}:80"
     volumes:
       - ./example_browserclient:/usr/share/nginx/html
+      - ./example_browserclient/config.js.template:/etc/nginx/templates/config.js.template:ro
+    # nginx image auto-runs envsubst on /etc/nginx/templates/*.template
+    # and writes results into /usr/share/nginx/html when NGINX_ENVSUBST_OUTPUT_DIR is set
+    command: >
+      /bin/sh -c "envsubst '$$BACKEND_WS_URL' < /etc/nginx/templates/config.js.template
+      > /usr/share/nginx/html/config.js
+      && nginx -g 'daemon off;'"
+    depends_on:
+      - rtstt
 
 volumes:
   cache:
-  
